@@ -14,13 +14,18 @@ Requirements:
 Running Entity Merger:
 ---------------------
 The entity merger takes as input 3 data sources:
+
 1. The input data source. This should be a JSON document example: `http://schema/doc/A  {"a": "Document", "hasElements": {"hasChild": {"a": "Person", "name":"X", "uri":"http://schema/person/X"}}, "uri": "http://schema/doc/A"}`
    Assume that the `Person` in the document has been linked to a person in a base datasource.
+
 2. The base data source. This should have the uri/id of the data and a JSON document representing the data. Example:
 `http://schema/person/standardA {"a": "Person", "source": "standard", "uri": "http://schema/person/standardA", "name": "Standard A"}`
+
 3. The linking results. These link source 1 to source 2. These have the format:
 `{"uri": "http://schema/person/X", matches: [{"score":1.0, "uri": "http://schema/person/standardA"}]}`
 
+
+<b>Invocation:</b>
 ```
 merger.py inputFile inputFileFormat baseFile baseFileFormat linkingResultFile outputDir outputFormat pathToJSONObjectInInput commaSepAttributesToRemoveOnMerge
 ```
