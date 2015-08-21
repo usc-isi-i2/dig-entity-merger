@@ -61,3 +61,25 @@ cd <spark-folder>
    ~/github/dig-entity-merger/result text \
    assignee.assignee 'name,address'
 ```
+
+Running Entity Deduplicator
+--------------------------
+After merging the entities, there could be duplicates in the dataset, or your input dataset could have duplicates to begin with.
+The deduplicator remove duplicate objects at the given input path
+
+<b>Invocation:</b>
+```
+deduplicator.py inputFile inputFileFormat pathToJSONObjectInInput outputDir outputFormat
+```
+
+Example Invocation:
+```
+cd <spark-folder>
+./bin/spark-submit  \
+   --master local[*]   \
+   --executor-memory=4g  --driver-memory=4g \
+   --py-files ~/github/dig-entity-merger/digEntityMerger/merger.zip \
+   ~/github/dig-entity-merger/digEntityMerger/deduplicator.py \
+   ~/github/dig-entity-merger/result text assignee \
+   ~/github/dig-entity-merger/result-nodup text
+```

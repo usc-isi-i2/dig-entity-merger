@@ -3,3 +3,8 @@ digEntityMerger/merger.zip
 .idea/*
 *.pyc
 
+
+*.crc
+part-00*
+_SUCCESS
+

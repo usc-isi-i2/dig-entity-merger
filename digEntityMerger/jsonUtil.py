@@ -42,16 +42,15 @@ class JSONUtil:
         if found:
             if isinstance(start, list):
                 for elem in start:
-                    if "uri" in elem:
-                        if only_uri is True:
+                    if only_uri is True:
+                        if "uri" in elem:
                             yield elem["uri"]
-                        else:
-                            yield elem
-            elif "uri" in start:
-                if only_uri is True:
-                    yield start["uri"]
-                else:
-                    yield start
+                    else:
+                        yield elem
+            elif only_uri is True and "uri" in start:
+                yield start["uri"]
+            else:
+                yield start
 
     @staticmethod
     def __extract_elements(array, elem_name):

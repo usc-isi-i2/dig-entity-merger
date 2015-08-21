@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from pyspark import SparkContext
-from pyspark.sql import HiveContext, Row
 
 from optparse import OptionParser
 import json
 from jsonUtil import JSONUtil
+from fileUtil import FileUtil
 
 
 #https://issues.apache.org/jira/browse/SPARK-4851
@@ -25,6 +25,7 @@ def merge_json(input_jsons, merge_uri_and_jsons, input_path, removeElements):
                                                          uri_and_json[1], removeElements)
         return input_json
 
+
 def load_linking_row(json_str, uri_as_key):
     json_obj = json.loads(json_str)
 
@@ -36,25 +37,10 @@ def load_linking_row(json_str, uri_as_key):
         value = json_obj["uri"]
     return key, value
 
+
 class EntityMerger:
     def __init__(self):
         pass
-
-    # def merge_rdds(self, rdd1, path1, rdd2, remove_attr):
-    #     hive_rdd1 = self.hiveCtx.jsonRDD(rdd1)
-    #     hive_rdd1.printSchema()
-    #     hive_rdd1.registerTempTable("a")
-    #
-    #     hive_rdd2 = self.hiveCtx.jsonRDD(rdd2)
-    #
-    #     source_uri = path1 + ".uri"
-    #
-    #     query = "SELECT * from a LATERAL VIEW OUTER explode(" + path1 + ") mergeTempTable AS tomatch"
-    #     hive_rdd1_explode = self.hiveCtx.sql(query)
-    #     hive_rdd1_explode.printSchema()
-    #
-    #     result = hive_rdd1_explode.join(hive_rdd2, hive_rdd1_explode.tomatch.uri == hive_rdd2.source, "left_outer")
-    #     return result.toJSON()
 
     @staticmethod
     def merge_rdds(inputRDD, inputPath, baseRDD, joinRDD, removeElements):
@@ -92,19 +78,14 @@ class EntityMerger:
 
 
 if __name__ == "__main__":
-    """
-        Usage: merger.py [inputFile1] [path to inner object] [inputFile2] [attributes to remove]
-    """
-    sc = SparkContext(appName="LSH-TOKENIZER")
+    sc = SparkContext(appName="DIG-ENTITY_MERGER")
 
     usage = "usage: %prog [options] inputDataset inputDatasetFormat" \
             "baseDataset baseDatasetFormat" \
-            "joinResult outputFilename outoutFileFormat"
+            "joinResult outputFilename outoutFileFormat inputPath commaSepRemoveAttributes"
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
-    # parser.add_option("-d", "--type", dest="data_type", type="string",
-    #                   help="input data type: csv/json", default="csv")
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -126,23 +107,12 @@ if __name__ == "__main__":
         removeElements = removeElementsStr.split(",")
 
     print "Write output to:", outputFilename
-    if inputFileFormat1 == "text":
-        input_rdd1 = sc.textFile(inputFilename1).map(lambda x:
-                                                     (x.split(c_options.separator)[0], json.loads(x.split(c_options.separator)[1])))
-    else:
-        input_rdd1 = sc.sequenceFile(inputFilename1).mapValues(lambda x: json.loads(x))
-
-    if baseFormat == "text":
-        base_rdd = sc.textFile(baseFilename).map(lambda x: (x.split(c_options.separator)[0], json.loads(x.split(c_options.separator)[1])))
-    else:
-        base_rdd = sc.sequenceFile(baseFilename).mapValues(lambda x: json.loads(x))
-
+    fileUtil = FileUtil(sc)
+    input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
+    base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
     join_rdd = sc.textFile(joinResultFilename)
 
     result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, join_rdd, removeElements)
 
     print "Write output to:", outputFilename
-    if outputFileFormat == "text":
-        result_rdd.saveAsTextFile(outputFilename)
-    else:
-        result_rdd.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(outputFilename)
+    fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)
