@@ -12,12 +12,13 @@ class EntityDeduplicator:
         pass
 
     def deduplicate(self, input_json, input_path):
-        input_path_arr = input_path.split(".")
+        input_path_arr = input_path.strip().split(".")
         if len(input_path_arr) > 1:
-            input_objs = JSONUtil.extract_objects_from_path(input_path, ".".join(input_path_arr[0, len(input_path_arr)-1]))
+            json_path = ".".join(input_path_arr[0: len(input_path_arr)-1])
+            input_objs = JSONUtil.extract_objects_from_path(input_json, json_path)
         else:
             input_objs = JSONUtil.to_list(input_json)
-        last_path_elem = input_path_arr[0]
+        last_path_elem = input_path_arr[len(input_path_arr)-1]
         for input_obj in input_objs:
             if last_path_elem in input_obj:
                 last_input_obj = input_obj[last_path_elem]
@@ -48,6 +49,7 @@ if __name__ == "__main__":
     inputFileFormat = args[1]
     inputPath = args[2]
 
+    print "Read ", inputFileFormat, " file from ", inputFilename, " with path:", inputPath
     outputFilename = args[3]
     outputFileFormat = args[4]
 
