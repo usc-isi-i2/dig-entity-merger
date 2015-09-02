@@ -21,8 +21,11 @@ def merge_json(input_jsons, merge_uri_and_jsons, input_path, removeElements):
                 uri_and_jsons.append(x)
 
             for uri_and_json in uri_and_jsons:
-                input_json = JSONUtil.replace_values_at_path(input_json, input_path, uri_and_json[0],
-                                                         uri_and_json[1], removeElements)
+                find_uri = uri_and_json[0]
+                replace_json = uri_and_json[1]
+                if replace_json:
+                    input_json = JSONUtil.replace_values_at_path(input_json, input_path, find_uri,
+                                                         replace_json, removeElements)
         return input_json
 
 
@@ -39,7 +42,7 @@ class EntityCleaner:
 
         #2. JOIN extracted source_uri with base
         #output source_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.leftOuterJoin(baseRDD)
+        merge3 = input_source_rdd.join(baseRDD)
 
         #3. Make input_uri as the key
         #output: input_uri, (source_uri, base_json)
