@@ -83,3 +83,25 @@ cd <spark-folder>
    ~/github/dig-entity-merger/result text assignee \
    ~/github/dig-entity-merger/result-nodup text
 ```
+
+Running Entity Cleaner
+----------------------
+Clean entities with a clean version from the base. If the uris match, it replaces the attributes in base with the ones in the entity.
+
+<b>Invocation:</b>
+```
+cleaner.py inputFile inputFileFormat pathToJSONObjectInInput baseFile baseFileFormat outputDir outputFormat
+```
+
+Example Invocation:
+```
+cd <spark-folder>
+rm -rf ~/github/dig-entity-merger/result-cleaner; ./bin/spark-submit  \
+   --master local[*]   \
+   --executor-memory=4g  --driver-memory=4g \
+   --py-files ~/github/dig-entity-merger/digEntityMerger/merger.zip \
+   ~/github/dig-entity-merger/digEntityMerger/cleaner.py \
+   ~/github/dig-entity-merger/cleaner_sample_input.txt text assignee.assignee \
+   ~/github/dig-entity-merger/cleaner_sample_base.txt text \
+   ~/github/dig-entity-merger/result-cleaner text
+```

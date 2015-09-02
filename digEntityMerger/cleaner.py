@@ -26,63 +26,44 @@ def merge_json(input_jsons, merge_uri_and_jsons, input_path, removeElements):
         return input_json
 
 
-def load_linking_row(json_str, uri_as_key):
-    json_obj = json.loads(json_str)
-
-    if uri_as_key:
-        key = json_obj["uri"]
-        value = json_obj["matches"][0]["uri"]
-    else:
-        key = json_obj["matches"][0]["uri"]
-        value = json_obj["uri"]
-    return key, value
-
-
-class EntityMerger:
+class EntityCleaner:
     def __init__(self):
         pass
 
     @staticmethod
-    def merge_rdds(inputRDD, inputPath, baseRDD, joinRDD, removeElements):
-        #1. Merge baseRDD and joinRDD
-        #baseRDD: base_uri base_json
-        #joinRDD: source_uri base_uri
-        #output:  source_uri, base_json
-        join_rdd_on_base = joinRDD.map(lambda x: load_linking_row(x, False))
-        base_merge = join_rdd_on_base.join(baseRDD).map(lambda x: (x[1][0], x[1][1]))
-
-        #2. Extract the source_uri from inputRDD
+    def clean_rdds(inputRDD, inputPath, baseRDD):
+        #1. Extract the source_uri from inputRDD
         #output: source_uri, input_uri
         input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
             .map(lambda (x, y): (y, x))
 
-        #3. JOIN extracted source_uri with base
+        #2. JOIN extracted source_uri with base
         #output source_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.join(base_merge)
+        merge3 = input_source_rdd.leftOuterJoin(baseRDD)
 
-        #4. Make input_uri as the key
+        #3. Make input_uri as the key
         #output: input_uri, (source_uri, base_json)
         merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], (source_uri, join_res[1])))
 
-        #5. Group results by input_uri
+        #4. Group results by input_uri
         #output: input_uri, list(source_uri, base_json)
         merge5 = merge4.groupByKey()
 
-        #6 Merge in input_json
+        #5 Merge in input_json
         #output: input_uri, list(input_json), list(source_uri, base_json)
         merge6 = inputRDD.cogroup(merge5)
 
-        #7 Replace JSON as necessary
-        result = merge6.mapValues(lambda x: merge_json(x[0], x[1], inputPath, removeElements))
+        #6 Replace JSON as necessary
+        result = merge6.mapValues(lambda x: merge_json(x[0], x[1], inputPath, []))
         return result
 
 
 if __name__ == "__main__":
-    sc = SparkContext(appName="DIG-ENTITY_MERGER")
+    sc = SparkContext(appName="DIG-ENTITY_CLEANER")
 
-    usage = "usage: %prog [options] inputDataset inputDatasetFormat" \
+    usage = "usage: %prog [options] inputDataset inputDatasetFormat inputPath" \
             "baseDataset baseDatasetFormat" \
-            "joinResult outputFilename outoutFileFormat inputPath commaSepRemoveAttributes"
+            "outputFilename outoutFileFormat"
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
@@ -91,28 +72,20 @@ if __name__ == "__main__":
     print "Got options:", c_options
     inputFilename1 = args[0]
     inputFileFormat1 = args[1]
+    inputPath = args[2]
 
-    baseFilename = args[2]
-    baseFormat = args[3]
-
-    joinResultFilename = args[4]
+    baseFilename = args[3]
+    baseFormat = args[4]
 
     outputFilename = args[5]
     outputFileFormat = args[6]
-
-    inputPath = args[7]
-    removeElementsStr = args[8].strip()
-    removeElements = []
-    if len(removeElementsStr) > 0:
-        removeElements = removeElementsStr.split(",")
 
     print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
     base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
-    join_rdd = sc.textFile(joinResultFilename)
 
-    result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, join_rdd, removeElements)
+    result_rdd = EntityCleaner.clean_rdds(input_rdd1, inputPath, base_rdd)
 
     print "Write output to:", outputFilename
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)
