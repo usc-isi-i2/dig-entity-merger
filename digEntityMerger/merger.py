@@ -35,7 +35,9 @@ def load_linking_row(json_str, uri_as_key):
     else:
         key = json_obj["matches"][0]["uri"]
         value = json_obj["uri"]
-    return key, value
+    if key != value:
+        return key, value
+
 
 
 class EntityMerger:
@@ -48,7 +50,7 @@ class EntityMerger:
         #baseRDD: base_uri base_json
         #joinRDD: source_uri base_uri
         #output:  source_uri, base_json
-        join_rdd_on_base = joinRDD.map(lambda x: load_linking_row(x, False))
+        join_rdd_on_base = joinRDD.map(lambda x: load_linking_row(x, False)) #Get back base_uri -> source_uri
         base_merge = join_rdd_on_base.join(baseRDD).map(lambda x: (x[1][0], x[1][1]))
 
         #2. Extract the source_uri from inputRDD
