@@ -34,7 +34,7 @@ class EntityCleaner:
         pass
 
     @staticmethod
-    def clean_rdds(inputRDD, inputPath, baseRDD):
+    def clean_rdds(inputRDD, inputPath, baseRDD, numPartitions):
         #1. Extract the source_uri from inputRDD
         #output: source_uri, input_uri
         input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
@@ -42,7 +42,7 @@ class EntityCleaner:
 
         #2. JOIN extracted source_uri with base
         #output source_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.join(baseRDD)
+        merge3 = input_source_rdd.join(baseRDD, numPartitions)
 
         #3. Make input_uri as the key
         #output: input_uri, (source_uri, base_json)
@@ -50,7 +50,7 @@ class EntityCleaner:
 
         #4. Group results by input_uri
         #output: input_uri, list(source_uri, base_json)
-        merge5 = merge4.groupByKey()
+        merge5 = merge4.groupByKey(numPartitions)
 
         #5 Merge in input_json
         #output: input_uri, list(input_json), list(source_uri, base_json)
@@ -70,6 +70,8 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
+    parser.add_option("-p", "--numPartitions", dest="numPartitions", type="int",
+                      help="number of partitions", default=10)
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
     base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
 
-    result_rdd = EntityCleaner.clean_rdds(input_rdd1, inputPath, base_rdd)
+    result_rdd = EntityCleaner.clean_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)
 
     print "Write output to:", outputFilename
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)
