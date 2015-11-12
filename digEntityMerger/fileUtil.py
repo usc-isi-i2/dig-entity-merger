@@ -38,3 +38,5 @@ class FileUtil:
             line_elem = line.split(separator, 2)
             if len(line_elem) > 1:
                 return line_elem[0], json.loads(line_elem[1])
+            elif len(line_elem) == 1:
+                return '', json.loads(line_elem[0])

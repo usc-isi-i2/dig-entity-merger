@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
-    input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
+    input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options).partitionBy(c_options.numPartitions)
     base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
 
     result_rdd = EntityCleaner.clean_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)
