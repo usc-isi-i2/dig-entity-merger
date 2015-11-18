@@ -18,6 +18,9 @@ class EntityDeduplicator:
             input_objs = JSONUtil.extract_objects_from_path(input_json, json_path)
         else:
             input_objs = JSONUtil.to_list(input_json)
+
+        print "Got objects:", json.dumps(input_objs)
+
         last_path_elem = input_path_arr[len(input_path_arr)-1]
         for input_obj in input_objs:
             if last_path_elem in input_obj:
@@ -58,5 +61,4 @@ if __name__ == "__main__":
     input_rdd = fileUtil.load_json_file(inputFilename, inputFileFormat, c_options)
     result_rdd = input_rdd.mapValues(lambda x: EntityDeduplicator().deduplicate(x, inputPath))
 
-    print "Write output to:", outputFilename
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)

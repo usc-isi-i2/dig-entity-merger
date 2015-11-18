@@ -1,0 +1,3 @@
+http://test.com/ad/a	{"a": "Advertisement", "hasGeo": {"location": {"a": "PostalAdress", "city": "Los Angeles", "state": "CA", "uri": "http://geonames.org/CA/los_angeles", "country": "USA"}}, "uri": "http://test.com/ad/a"}
+http://test.com/ad/b	{"a": "Advertisement", "hasGeo": {"location": {"a": "PostalAdress", "city": "San Francisco", "state": "CA", "uri": "http://geonames.org/CA/san_francisco", "country": "USA"}}, "uri": "http://test.com/ad/b"}
+http://test.com/ad/c	{"a": "Advertisement", "hasGeo": {"location": {"a": "PostalAdress", "city": "Santa Barbara", "state": "CA", "uri": "http://geonames.org/CA/santa_barbara", "country": "USA"}}, "uri": "http://test.com/ad/c"}

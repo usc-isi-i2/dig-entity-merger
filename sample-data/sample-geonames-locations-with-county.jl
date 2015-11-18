@@ -1,0 +1,3 @@
+http://geonames.org/CA/santa_barbara	{"a": "PostalAdress", "city":"Santa Barbara", "uri":"http://geonames.org/CA/santa_barbara", "region": "CA", "country": "USA", "county": "Santa Barbara County"}
+http://geonames.org/CA/los_angeles	{"a": "PostalAdress", "city":"Los Angeles", "uri":"http://geonames.org/CA/los_angeles", "state": "CA", "country": "USA", "county": "Los Angeles County"}
+http://geonames.org/CA/san_francisco	{"a": "PostalAdress", "city":"San Francisco", "uri":"http://geonames.org/CA/san_francisco", "state": "CA", "country": "USA", "county": "County of San Francisco"}

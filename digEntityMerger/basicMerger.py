@@ -49,7 +49,7 @@ def load_linking_row(json_str, uri_as_key):
 
 
 def reduceLists(x, y):
-    print "Reduce Lists:", x, " AND ", y
+    #print "Reduce Lists:", x, " AND ", y
     if x is not None:
         if y is not None:
             if isinstance(y, list):
@@ -110,22 +110,22 @@ if __name__ == "__main__":
                       help="number of partitions", default=5)
 
     (c_options, args) = parser.parse_args()
-    print "Got options:", c_options
     inputFilename1 = args[0]
     inputFileFormat1 = args[1]
+    inputPath = args[2]
 
-    baseFilename = args[2]
-    baseFormat = args[3]
+    baseFilename = args[3]
+    baseFormat = args[4]
 
-    outputFilename = args[4]
-    outputFileFormat = args[5]
+    outputFilename = args[5]
+    outputFileFormat = args[6]
 
-    inputPath = args[6]
+    print "Got options:", c_options, ", " \
+                         "input:", inputFilename1, ",", inputFileFormat1, ",", inputPath, \
+                         ", base:", baseFilename, ",", baseFormat
 
-    print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
-    print "Load base:", baseFilename, ":", baseFormat
     base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
 
     result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)

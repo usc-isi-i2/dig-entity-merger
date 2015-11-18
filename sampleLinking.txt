@@ -1,4 +1,0 @@
-{"uri": "http://dig.isi.edu/patents/data/organization/greenbuildingstudioinc", "matches":[{"score":1.0, "uri":"http://dig.isi.edu/patents/data/organization/1830southoceandrive1706llc"}]}
-{"uri": "http://dig.isi.edu/patents/data/organization/warnerlambertcompanyacorpofde", "matches":[{"score":1.0, "uri":"http://dig.isi.edu/patents/data/organization/acarealtyinc"}]}
-{"uri": "http://dig.isi.edu/patents/data/organization/manrolandag", "matches":[{"score":1.0, "uri":"http://dig.isi.edu/patents/data/organization/abctowingamppartsllc"}]}
-{"uri": "http://dig.isi.edu/patents/data/organization/manrolandag1", "matches":[{"score":1.0, "uri":"http://dig.isi.edu/patents/data/organization/abctowingamppartsllc"}]}

@@ -1,5 +1,0 @@
-http://dig.isi.edu/patents/data/organization/warnerlambertcompanyacorpofde	{"uri":"http://dig.isi.edu/patents/data/organization/warnerlambertcompanyacorpofde", "name": "WARNER-LAMBERT"}
-http://dig.isi.edu/patents/data/organization/manrolandag	{"uri":"http://dig.isi.edu/patents/data/organization/manrolandag", "name":"MANROLAND"}
-http://dig.isi.edu/patents/data/organization/manrolandag1	{"uri":"http://dig.isi.edu/patents/data/organization/manrolandag1", "name":"MANROLAND"}
-http://dig.isi.edu/patents/data/organization/greenbuildingstudioinc	{"uri":"http://dig.isi.edu/patents/data/organization/greenbuildingstudioinc", "name":"Green Buildings Studio"}
-http://dig.isi.edu/patents/data/organization/bankofamericana	{"uri":"http://dig.isi.edu/patents/data/organization/bankofamericana", "name":"Bank of America"}

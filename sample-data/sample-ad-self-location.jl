@@ -1,0 +1,3 @@
+http://test.com/ad/a	{"a": "Advertisement", "uri":"http://test.com/ad/a", "hasGeo": {"location": {"uri":"http://test.com/address/los_angeles"}}}
+http://test.com/ad/b	{"a": "Advertisement", "uri":"http://test.com/ad/b", "hasGeo": {"location": {"uri":"test.com/address/san_francisco"}}}
+http://test.com/ad/c	{"a": "Advertisement", "uri":"http://test.com/ad/c", "hasGeo": {"location": {"uri":"http://test.com/address/santa_barbara"}}}

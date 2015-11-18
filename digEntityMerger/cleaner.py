@@ -74,7 +74,6 @@ if __name__ == "__main__":
                       help="number of partitions", default=10)
 
     (c_options, args) = parser.parse_args()
-    print "Got options:", c_options
     inputFilename1 = args[0]
     inputFileFormat1 = args[1]
     inputPath = args[2]
@@ -84,7 +83,9 @@ if __name__ == "__main__":
 
     outputFilename = args[5]
     outputFileFormat = args[6]
-
+    print "Got options:", c_options, ", " \
+                         "input:", inputFilename1, ",", inputFileFormat1, ",", inputPath, \
+                         ", base:", baseFilename, ",", baseFormat
     print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options).partitionBy(c_options.numPartitions)
@@ -92,5 +93,4 @@ if __name__ == "__main__":
 
     result_rdd = EntityCleaner.clean_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)
 
-    print "Write output to:", outputFilename
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)

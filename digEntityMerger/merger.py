@@ -26,9 +26,8 @@ def merge_json(input_jsons, merge_uri_and_jsons, input_path, removeElements):
         return input_json
 
 
-def load_linking_row(json_str, uri_as_key):
-    json_obj = json.loads(json_str)
-
+def load_linking_row(tuple, uri_as_key):
+    json_obj = tuple[1]
     if uri_as_key:
         key = json_obj["uri"]
         value = json_obj["matches"][0]["uri"]
@@ -45,7 +44,7 @@ class EntityMerger:
         pass
 
     @staticmethod
-    def merge_rdds(inputRDD, inputPath, baseRDD, joinRDD, removeElements):
+    def merge_rdds(inputRDD, inputPath, baseRDD, joinRDD, removeElements, numPartitions):
         #1. Merge baseRDD and joinRDD
         #baseRDD: base_uri base_json
         #joinRDD: source_uri base_uri
@@ -60,7 +59,7 @@ class EntityMerger:
 
         #3. JOIN extracted source_uri with base
         #output source_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.join(base_merge)
+        merge3 = input_source_rdd.join(base_merge, numPartitions)
 
         #4. Make input_uri as the key
         #output: input_uri, (source_uri, base_json)
@@ -82,39 +81,47 @@ class EntityMerger:
 if __name__ == "__main__":
     sc = SparkContext(appName="DIG-ENTITY_MERGER")
 
-    usage = "usage: %prog [options] inputDataset inputDatasetFormat" \
+    usage = "usage: %prog [options] inputDataset inputDatasetFormat inputPath" \
             "baseDataset baseDatasetFormat" \
-            "joinResult outputFilename outoutFileFormat inputPath commaSepRemoveAttributes"
+            "joinResult outputFilename outoutFileFormat commaSepRemoveAttributes"
     parser = OptionParser()
     parser.add_option("-r", "--separator", dest="separator", type="string",
                       help="field separator", default="\t")
+    parser.add_option("-n", "--numPartitions", dest="numPartitions", type="int",
+                      help="number of partitions", default=5)
+    parser.add_option("-t", "--remove", dest="remove", type="string",
+                      help="comma sep attributes to remove", default='')
 
     (c_options, args) = parser.parse_args()
     print "Got options:", c_options
     inputFilename1 = args[0]
     inputFileFormat1 = args[1]
+    inputPath = args[2]
 
-    baseFilename = args[2]
-    baseFormat = args[3]
+    baseFilename = args[3]
+    baseFormat = args[4]
 
-    joinResultFilename = args[4]
+    joinResultFilename = args[5]
+    joinFormat = args[6]
 
-    outputFilename = args[5]
-    outputFileFormat = args[6]
+    outputFilename = args[7]
+    outputFileFormat = args[8]
 
-    inputPath = args[7]
-    removeElementsStr = args[8].strip()
+    removeElementsStr = c_options.remove
     removeElements = []
     if len(removeElementsStr) > 0:
         removeElements = removeElementsStr.split(",")
+
+    print "Got options:", c_options, ", " \
+                         "input:", inputFilename1, ",", inputFileFormat1, ",", inputPath, \
+                         ", base:", baseFilename, ",", baseFormat, ", join:", joinResultFilename
 
     print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
     base_rdd = fileUtil.load_json_file(baseFilename, baseFormat, c_options)
-    join_rdd = sc.textFile(joinResultFilename)
+    join_rdd = fileUtil.load_json_file(joinResultFilename, joinFormat, c_options)
 
-    result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, join_rdd, removeElements)
+    result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, join_rdd, removeElements, c_options.numPartitions)
 
-    print "Write output to:", outputFilename
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)
