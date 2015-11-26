@@ -1,0 +1,16 @@
+{
+	"@type": "Offer",
+	"ad": {
+		"@type": "Advertisement",
+		
+		"hasGeo": {
+			"@type" : "Geometry",
+			"location" : {
+				"@type" : "PostalAdress"
+			}
+		}
+	},
+	"seller": {
+		"@type" : "Seller"
+	}
+}

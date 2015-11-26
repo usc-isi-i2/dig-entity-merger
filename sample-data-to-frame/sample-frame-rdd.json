@@ -1,0 +1,7 @@
+{
+	"Geometry": {"path": "../sample-data-to-frame/sample-geometries.jl"},
+	"Advertisement": {"path": "../sample-data-to-frame/sample-ads.jl"},
+	"PostalAdress": {"path": "../sample-data-to-frame/sample-postaladdresses.jl"},
+	"Offer": {"path": "../sample-data-to-frame/sample-offers.jl"},
+	"Seller": {"path": "../sample-data-to-frame/sample-sellers.jl"}
+}
