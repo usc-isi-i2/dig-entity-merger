@@ -2,13 +2,14 @@
 	"@type": "Offer",
 	"ad": {
 		"@type": "Advertisement",
-		
+		"@explicit" : true, 
 		"hasGeo": {
 			"@type" : "Geometry",
 			"location" : {
 				"@type" : "PostalAdress"
 			}
-		}
+		},
+		"ex:good": {}
 	},
 	"seller": {
 		"@type" : "Seller"

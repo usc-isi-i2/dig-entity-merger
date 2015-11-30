@@ -13,6 +13,17 @@ class JSONUtil:
         return isinstance(strDictOrListValue, dict) and (("uri" in strDictOrListValue and strDictOrListValue["uri"] == findUri )or ("@id" in strDictOrListValue and strDictOrListValue["@id"] == findUri))        
 
     @staticmethod
+    def is_reserved_json_ld_property(prop):
+        return (prop[0] == "@"  or prop == "a" or prop == "uri")
+        
+    @staticmethod
+    def frame_include_only_values(jsonToEdit, frame):
+        for elem_name in jsonToEdit.keys():
+            if not elem_name in frame and not JSONUtil.is_reserved_json_ld_property(elem_name):
+                del jsonToEdit[elem_name]
+        return jsonToEdit
+
+    @staticmethod
     def replace_values(jsonToEdit, replaceJson, removeElements) :
         for elem_name in removeElements:
             if elem_name in jsonToEdit:

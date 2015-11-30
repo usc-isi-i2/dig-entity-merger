@@ -11,11 +11,14 @@ def frame_json(frame, type_to_rdd):
 	document_type = frame["@type"]
 	output_rdd = type_to_rdd[document_type]["rdd"]
 	if len(frame.items()) > 1 :
-
+		if "@explicit" in frame and frame["@explicit"] == True:
+			output_rdd = output_rdd.map(lambda (uri, json): (uri, JSONUtil.frame_include_only_values(json, frame)))
 		for key, val in frame.items():
-			if key == "@context" or key == "@type":
+			if key[0] == "@":
 				continue
-			print key
+			if isinstance(val, dict) and not "@type" in val:
+				continue
+			# should this be every value?
 			child_rdd = frame_json(val, type_to_rdd)
 			output_rdd = EntityMerger.merge_rdds(output_rdd, key, child_rdd, 10)
 	return output_rdd
