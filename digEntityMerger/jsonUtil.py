@@ -53,12 +53,12 @@ class JSONUtil:
                         continue
                     elif(isinstance(strDictOrListElement, dict)):
                         dictElement = strDictOrListElement
-                        JSONUtil.replace_values_at_path_list(dictElement, jsonPathList.tail, findUri, replaceJson, removeElements)
+                        JSONUtil.replace_values_at_path_list(dictElement, jsonPathList[1:], findUri, replaceJson, removeElements)
                     else:
                         continue
             elif isinstance(strDictOrListValue, dict):
                 dictValue = strDictOrListValue
-                JSONUtil.replace_values_at_path_list(dictValue, jsonPathList.tail, findUri, replaceJson, removeElements)
+                JSONUtil.replace_values_at_path_list(dictValue, jsonPathList[1:], findUri, replaceJson, removeElements)
             
         return jsonInput
 
