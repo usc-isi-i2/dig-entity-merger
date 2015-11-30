@@ -18,6 +18,8 @@ def frame_json(frame, type_to_rdd):
 				continue
 			if isinstance(val, dict) and not "@type" in val:
 				continue
+			if isinstance(val, dict) and "@embed" in val and val["@embed"] == False:
+				continue
 			# should this be every value?
 			child_rdd = frame_json(val, type_to_rdd)
 			output_rdd = EntityMerger.merge_rdds(output_rdd, key, child_rdd, 10)
