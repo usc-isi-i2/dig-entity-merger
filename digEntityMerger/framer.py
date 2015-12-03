@@ -44,17 +44,22 @@ if __name__ == "__main__":
 	parser.add_option("-n", "--numPartitions", dest="numPartitions", type="int", help="number of partitions", default=5)
 
 	(c_options, args) = parser.parse_args()
-	type_to_rdd_json_input = open("../sample-data-to-frame/sample-frame-rdd.json") 
+	frameFilename = args[0]
+	rddFilename = args[1]
+	outputFilename = args[2]
+	if len(args) > 3:
+		outputFileFormat = args[3]
+	else :
+		outputFileFormat = "text"
+	type_to_rdd_json_input = open(rddFilename) 
 	type_to_rdd_json = json.load(type_to_rdd_json_input)
 	type_to_rdd_json_input.close()
-	frame_input = open("../sample-data-to-frame/sample-frame.json-ld") 
+	frame_input = open(frameFilename) 
 	frame = json.load(frame_input)
 	frame_input.close()
 	fileUtil = FileUtil(sc)
 	for key,val in type_to_rdd_json.items():
-		val["rdd"] = fileUtil.load_json_file(val["path"], "text", c_options)
+		val["rdd"] = fileUtil.load_json_file(val["path"], val["format"], c_options)
 	output_rdd = frame_json(frame, type_to_rdd_json)
-	outputFilename = "../sample-data-to-frame/sample-framed-data-output.json"
 	print "Write output to:", outputFilename
-	outputFileFormat = "text"
 	fileUtil.save_json_file(output_rdd, outputFilename, outputFileFormat, c_options)
