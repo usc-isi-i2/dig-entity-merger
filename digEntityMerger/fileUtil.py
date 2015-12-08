@@ -9,8 +9,8 @@ class FileUtil:
 
     def load_json_file(self, filename, fileformat, options):
         if fileformat == "text":
-            input_rdd = self.sc.textFile(filename).map(lambda x: FileUtil.__parse_json_line(x, options.separator))
-        elif fileformat == 'sequence':
+            input_rdd = self.sc.textFile(filename).map(lambda x: FileUtil.__parse_json_line(x, FileUtil.__getOption(options, 'separator')))
+        elif fileformat == "sequence":
             input_rdd = self.sc.sequenceFile(filename).mapValues(lambda x: json.loads(x))
         else:
             raise ValueError("Unexpected fileformat {}".format(fileformat))
@@ -18,9 +18,23 @@ class FileUtil:
 
     def save_json_file(self, rdd, filename, fileformat, options):
         if fileformat == "text":
-            rdd.map(lambda (k, v): FileUtil.__dump_as_json(k, v, options.separator)).saveAsTextFile(filename)
-        else:
+            rdd.map(lambda (k, v): FileUtil.__dump_as_json(k, v, FileUtil.__getOption(options, 'separator'))).saveAsTextFile(filename)
+        elif fileformat == "sequence":
             rdd.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(filename)
+        else:
+            raise ValueError("Unexpected fileformat {}".format(fileformat))
+
+    @staticmethod
+    def __getOption(optionsOrDict, optionName):
+        """Should work for options stored in optparse.options, argparse.args, vanilla dict, or **kwargs"""
+        try:
+            return optionsOrDict.get(optionName)
+        except:
+            pass
+        try:
+            return optionsOrDict[optionName]
+        except:
+            raise ValueError("Unrecognized option {}".format(optionName))
 
     @staticmethod
     def __dump_as_json(key, value, sep):
