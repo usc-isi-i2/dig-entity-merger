@@ -10,8 +10,10 @@ class FileUtil:
     def load_json_file(self, filename, fileformat, options):
         if fileformat == "text":
             input_rdd = self.sc.textFile(filename).map(lambda x: FileUtil.__parse_json_line(x, options.separator))
-        else:
+        elif fileformat == 'sequence':
             input_rdd = self.sc.sequenceFile(filename).mapValues(lambda x: json.loads(x))
+        else:
+            raise ValueError("Unexpected fileformat {}".format(fileformat))
         return input_rdd
 
     def save_json_file(self, rdd, filename, fileformat, options):
