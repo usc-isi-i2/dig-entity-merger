@@ -6,6 +6,36 @@ import json
 from jsonUtil import JSONUtil
 from fileUtil import FileUtil
 from basicMerger import EntityMerger
+import urllib
+
+def frame_from_file(frame_filename, rdd, rdd_types):
+    if frame_filename.find("http") == 0:
+        frame_input = urllib.urlopen(frame_filename)
+    else:
+        frame_input = open(frame_filename)
+    frame = json.load(frame_input)
+    frame_input.close()
+    type_to_rdd_json = {}
+
+    for rdd_type in rdd_types:
+        # print "Check for type:", rdd_type
+        type_name = rdd_type["name"]
+        type_full = rdd_type["uri"]
+
+        type_to_rdd_json[type_name] = {}
+
+        def filter_on_type(tuple, type):
+            # key = tuple[0]
+            value = tuple[1]
+            # print "GOt value", value
+            if value["a"] == type:
+                return True
+            return False
+
+        type_to_rdd_json[type_name]["rdd"] = rdd.filter(lambda x: filter_on_type(x, type_full) )
+
+    output_rdd = frame_json(frame, type_to_rdd_json)
+    return output_rdd
 
 def frame_json(frame, type_to_rdd):
 	document_type = frame["@type"]
