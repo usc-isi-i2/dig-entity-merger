@@ -6,19 +6,13 @@ import json
 from jsonUtil import JSONUtil
 from fileUtil import FileUtil
 from basicMerger import EntityMerger
-import urllib
 
 def partition_rdd_on_types(rdd, types):
     type_to_rdd_json = {}
 
     for rdd_type in types:
-        # print "Check for type:", rdd_type
-        type_name = rdd_type["name"]
-        type_full = rdd_type["uri"]
-
-        type_to_rdd_json[type_name] = {}
-
         def filter_on_type(tuple, class_name):
+            #print "FIlter on:", class_name
             # key = tuple[0]
             value = tuple[1]
             # print "GOt value", value
@@ -28,7 +22,14 @@ def partition_rdd_on_types(rdd, types):
                         return True
             return False
 
-        type_to_rdd_json[type_name]["rdd"] = rdd.filter(lambda x: filter_on_type(x, type_full) )
+        def create_rdd_on_type(rdd, rdd_type):
+            type_name = rdd_type["name"]
+            type_full = rdd_type["uri"]
+
+            type_to_rdd_json[type_name] = {}
+            type_to_rdd_json[type_name]["rdd"] = rdd.filter(lambda x: filter_on_type(x, type_full))
+
+        create_rdd_on_type(rdd, rdd_type)
     return type_to_rdd_json
 
 def frame_json(frame, type_to_rdd):
