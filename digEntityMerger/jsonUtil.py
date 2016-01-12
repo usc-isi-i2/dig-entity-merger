@@ -124,12 +124,12 @@ class JSONUtil:
             if isinstance(start, list):
                 for elem in start:
                     if only_uri is True:
-                        if "uri" in elem:
+                        if isinstance(elem, unicode) or isinstance(elem, str):
+                            yield elem
+                        elif "uri" in elem:
                             yield elem["uri"]
                         elif "@id" in elem:
                             yield elem["@id"]
-                        elif isinstance(elem, unicode) or isinstance(elem, str): 
-                            yield elem
                     else:
                         yield elem
             elif only_uri is True and "uri" in start:
