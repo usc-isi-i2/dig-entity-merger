@@ -133,9 +133,9 @@ class JSONUtil:
                             yield elem["@id"]
                     else:
                         yield elem
-            elif only_uri is True and "uri" in start:
+            elif only_uri is True and isinstance(start, dict) and "uri" in start:
                 yield start["uri"]
-            elif only_uri is True and "@id" in start:
+            elif only_uri is True and isinstance(start, dict) and "@id" in start:
                 yield start["@id"]
             else:
                 yield start
