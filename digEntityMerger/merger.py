@@ -59,7 +59,10 @@ class EntityMerger:
 
         #3. JOIN extracted source_uri with base
         #output source_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.join(base_merge, numPartitions)
+        if numPartitions != -1:
+            merge3 = input_source_rdd.join(base_merge, numPartitions)
+        else:
+            merge3 = input_source_rdd.join(base_merge)
 
         #4. Make input_uri as the key
         #output: input_uri, (source_uri, base_json)

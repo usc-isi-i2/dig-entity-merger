@@ -44,12 +44,12 @@ def partition_rdd_on_types(rdd, types):
     return type_to_rdd_json
 
 
-def frame_json(frame, type_to_rdd):
+def frame_json(frame, type_to_rdd, numPartitions=-1, maxNumMerge=None):
     document_type = frame["@type"]
     output_rdd = type_to_rdd[document_type]["rdd"]
     if len(frame.items()) > 1:
         if "@explicit" in frame and frame["@explicit"] == True:
-            output_rdd = output_rdd.map(lambda (uri, json): (uri, JSONUtil.frame_include_only_values(json, frame)))
+            output_rdd = output_rdd.mapValues(lambda json: JSONUtil.frame_include_only_values(json, frame))
         for key, val in frame.items():
             if key[0] == "@":
                 continue
@@ -58,8 +58,8 @@ def frame_json(frame, type_to_rdd):
             if isinstance(val, dict) and "@embed" in val and val["@embed"] == False:
                 continue
             # should this be every value?
-            child_rdd = frame_json(val, type_to_rdd)
-            output_rdd = EntityMerger.merge_rdds(output_rdd, key, child_rdd, 10)
+            child_rdd = frame_json(val, type_to_rdd, numPartitions, maxNumMerge)
+            output_rdd = EntityMerger.merge_rdds(output_rdd, key, child_rdd, numPartitions, maxNumMerge)
     return output_rdd
 
 #recurse through the frame json document and insert the rdds just loaded by type
