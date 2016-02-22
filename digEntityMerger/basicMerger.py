@@ -80,6 +80,9 @@ class EntityMerger:
             input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
                 .map(lambda (x, y): (y, x))
 
+        #Get unique objects from base
+        baseRDD = baseRDD.reduceByKey(lambda x: x[0])
+
         #3. JOIN extracted source_uri with base
         #output merge_uri, (input_uri, base_json)
         merge3 = input_source_rdd.join(baseRDD)
