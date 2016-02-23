@@ -10,7 +10,7 @@ config = {
     'url': 'https://github.com/usc-isi-i2/dig-entity-merger',
     'download_url': 'https://github.com/usc-isi-i2/dig-entity-merger',
     'author_email': 'dipsykapoor@gmail.com',
-    'version': '0.2',
+    'version': '0.3',
     'install_requires': ['nose2'],
     # these are the subdirs of the current directory that we care about
     'packages': ['digEntityMerger'],
