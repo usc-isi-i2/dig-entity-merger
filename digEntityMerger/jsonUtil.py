@@ -38,25 +38,26 @@ class JSONUtil:
         if(len(jsonPathList) == 0):
             return         
         elif(len(jsonPathList) == 1):
-            strDictOrListValue = jsonInput[jsonPathList[0]]
+            if jsonPathList[0] in jsonInput:
+                strDictOrListValue = jsonInput[jsonPathList[0]]
 
-            if isinstance(strDictOrListValue, list):
-                newList = list()
-                listValue = strDictOrListValue
-                for strDictOrListElement in listValue :
-                    if JSONUtil.test_is_basestring_uri_match(strDictOrListElement, findUri):
-                        newList.append(replaceJson)
-                    elif JSONUtil.test_is_dict_uri_match(strDictOrListElement, findUri):
-                        newList.append(JSONUtil.replace_values(strDictOrListElement, replaceJson, removeElements))
-                    else:
-                        newList.append(strDictOrListElement)
-                jsonInput[jsonPathList[0]] = newList
-            elif JSONUtil.test_is_basestring_uri_match(strDictOrListValue, findUri) :
-                jsonInput[jsonPathList[0]] = replaceJson
-            elif JSONUtil.test_is_dict_uri_match(strDictOrListValue, findUri):
-                jsonInput[jsonPathList[0]] = JSONUtil.replace_values(strDictOrListValue, replaceJson, removeElements)
+                if isinstance(strDictOrListValue, list):
+                    newList = list()
+                    listValue = strDictOrListValue
+                    for strDictOrListElement in listValue :
+                        if JSONUtil.test_is_basestring_uri_match(strDictOrListElement, findUri):
+                            newList.append(replaceJson)
+                        elif JSONUtil.test_is_dict_uri_match(strDictOrListElement, findUri):
+                            newList.append(JSONUtil.replace_values(strDictOrListElement, replaceJson, removeElements))
+                        else:
+                            newList.append(strDictOrListElement)
+                    jsonInput[jsonPathList[0]] = newList
+                elif JSONUtil.test_is_basestring_uri_match(strDictOrListValue, findUri) :
+                    jsonInput[jsonPathList[0]] = replaceJson
+                elif JSONUtil.test_is_dict_uri_match(strDictOrListValue, findUri):
+                    jsonInput[jsonPathList[0]] = JSONUtil.replace_values(strDictOrListValue, replaceJson, removeElements)
             
-        else :
+        elif jsonPathList[0] in jsonInput:
             strDictOrListValue = jsonInput[jsonPathList[0]]
             if isinstance(strDictOrListValue, list):
                 listValue = strDictOrListValue
@@ -124,17 +125,17 @@ class JSONUtil:
             if isinstance(start, list):
                 for elem in start:
                     if only_uri is True:
-                        if "uri" in elem:
+                        if isinstance(elem, unicode) or isinstance(elem, str):
+                            yield elem
+                        elif "uri" in elem:
                             yield elem["uri"]
                         elif "@id" in elem:
                             yield elem["@id"]
-                        elif isinstance(elem, unicode) or isinstance(elem, str): 
-                            yield elem
                     else:
                         yield elem
-            elif only_uri is True and "uri" in start:
+            elif only_uri is True and isinstance(start, dict) and "uri" in start:
                 yield start["uri"]
-            elif only_uri is True and "@id" in start:
+            elif only_uri is True and isinstance(start, dict) and "@id" in start:
                 yield start["@id"]
             else:
                 yield start

@@ -64,7 +64,7 @@ class EntityMerger:
         pass
 
     @staticmethod
-    def merge_rdds(inputRDD, inputPath, baseRDD, numPartitions):
+    def merge_rdds(inputRDD, inputPath, baseRDD, numPartitions, maxNumMerge=None):
         # inputRDD: input_uri, input_json
         # base_rdd: merge_uri, base_json
         #
@@ -73,8 +73,15 @@ class EntityMerger:
 
         #2. Extract the source_uri from inputRDD
         #output: merge_uri, input_uri
-        input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
-            .map(lambda (x, y): (y, x))
+        if maxNumMerge is not None:
+            input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)[0:maxNumMerge]) \
+                .map(lambda (x, y): (y, x))
+        else:
+            input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
+                .map(lambda (x, y): (y, x))
+
+        #Get unique objects from base
+        baseRDD = baseRDD.reduceByKey(lambda x: x[0])
 
         #3. JOIN extracted source_uri with base
         #output merge_uri, (input_uri, base_json)
@@ -82,7 +89,9 @@ class EntityMerger:
 
         #4. Make input_uri as the key
         #output: input_uri, (merge_uri, base_json)
-        merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], [(source_uri, join_res[1])])).partitionBy(numPartitions)
+        merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], [(source_uri, join_res[1])]))
+        if numPartitions > 0:
+            merge4 = merge4.partitionBy(numPartitions)
 
         #5. Group results by input_uri
         #output: input_uri, list(merge_uri, base_json))
