@@ -20,7 +20,7 @@ class JSONUtil:
     @staticmethod
     def frame_include_only_values(jsonToEdit, frame):
         for elem_name in jsonToEdit.keys():
-            if not elem_name in frame and not JSONUtil.is_reserved_json_ld_property(elem_name):
+            if not elem_name in frame: # and not JSONUtil.is_reserved_json_ld_property(elem_name):
                 del jsonToEdit[elem_name]
         return jsonToEdit
 
