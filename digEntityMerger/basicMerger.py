@@ -81,25 +81,34 @@ class EntityMerger:
                 .map(lambda (x, y): (y, x))
 
         #Get unique objects from base
-        baseRDD = baseRDD.reduceByKey(lambda x: x[0])
+        if numPartitions > 0:
+            baseRDD = baseRDD.reduceByKey(lambda x: x[0], numPartitions)
 
-        #3. JOIN extracted source_uri with base
-        #output merge_uri, (input_uri, base_json)
-        merge3 = input_source_rdd.join(baseRDD)
+            #3. JOIN extracted source_uri with base
+            #output merge_uri, (input_uri, base_json)
+            merge3 = input_source_rdd.join(baseRDD, numPartitions)
+        else:
+            baseRDD = baseRDD.reduceByKey(lambda x: x[0])
+            merge3 = input_source_rdd.join(baseRDD)
 
         #4. Make input_uri as the key
         #output: input_uri, (merge_uri, base_json)
         merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], [(source_uri, join_res[1])]))
-        if numPartitions > 0:
-            merge4 = merge4.partitionBy(numPartitions)
 
         #5. Group results by input_uri
         #output: input_uri, list(merge_uri, base_json))
-        merge5 = merge4.reduceByKey(reduceLists)
+        if numPartitions > 0:
+            merge5 = merge4.reduceByKey(reduceLists, numPartitions)
 
-        #6 Merge in input_json
-        #output: input_uri, list(input_json), list(merge_uri, base_json)
-        merge6 = inputRDD.cogroup(merge5)
+            #6 Merge in input_json
+            #output: input_uri, list(input_json), list(merge_uri, base_json)
+            merge6 = inputRDD.cogroup(merge5, numPartitions)
+        else:
+            merge5 = merge4.reduceByKey(reduceLists)
+
+            #6 Merge in input_json
+            #output: input_uri, list(input_json), list(merge_uri, base_json)
+            merge6 = inputRDD.cogroup(merge5)
 
         #7 Replace JSON as necessary
         result = merge6.mapValues(lambda x: merge_json(x[0], x[1], inputPath))
