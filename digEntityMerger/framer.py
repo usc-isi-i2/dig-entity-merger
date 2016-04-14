@@ -7,10 +7,9 @@ from jsonUtil import JSONUtil
 from fileUtil import FileUtil
 from basicMerger import EntityMerger
 
-
-def partition_rdd_on_types(rdd, types):
-    type_to_rdd_json = {}
-
+# TODO This needs to be handled before the framer is ever invoked.  
+# The input to the framer should be key + dictionary value only
+def expand_list_values(rdd):
     def expand_list(tuple):
         key = tuple[0]
         value = tuple[1]
@@ -20,7 +19,11 @@ def partition_rdd_on_types(rdd, types):
         else:
             yield key, value
 
-    rdd = rdd.flatMap(lambda x: expand_list(x))
+    #flatMapValues allows us to retain partitioning
+    return rdd.flatMapValues(lambda x: expand_list(x))
+
+def partition_rdd_on_types(rdd, types):
+    type_to_rdd_json = {}
     for rdd_type in types:
         def filter_on_type(tuple, class_name):
             #print "FIlter on:", class_name
