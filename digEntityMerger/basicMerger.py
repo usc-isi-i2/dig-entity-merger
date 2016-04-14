@@ -82,13 +82,12 @@ class EntityMerger:
 
         #Get unique objects from base
         if numPartitions > 0:
-            baseRDD = baseRDD.reduceByKey(lambda x: x[0], numPartitions)
+            input_source_rdd.partitionBy(numPartitions)
 
             #3. JOIN extracted source_uri with base
             #output merge_uri, (input_uri, base_json)
             merge3 = input_source_rdd.join(baseRDD, numPartitions)
         else:
-            baseRDD = baseRDD.reduceByKey(lambda x: x[0])
             merge3 = input_source_rdd.join(baseRDD)
 
         #4. Make input_uri as the key
@@ -98,6 +97,8 @@ class EntityMerger:
         #5. Group results by input_uri
         #output: input_uri, list(merge_uri, base_json))
         if numPartitions > 0:
+            # TODO this reduceLists is unnecessary.  groupByKey will already
+            # give us an iterable list of values.
             merge5 = merge4.reduceByKey(reduceLists, numPartitions)
 
             #6 Merge in input_json
