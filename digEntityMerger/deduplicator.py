@@ -11,7 +11,8 @@ class EntityDeduplicator:
     def __init__(self):
         pass
 
-    def deduplicate(self, input_json, input_path):
+    @staticmethod
+    def deduplicate(input_json, input_path):
         input_path_arr = input_path.strip().split(".")
         if len(input_path_arr) > 1:
             json_path = ".".join(input_path_arr[0: len(input_path_arr)-1])
@@ -19,7 +20,7 @@ class EntityDeduplicator:
         else:
             input_objs = JSONUtil.to_list(input_json)
 
-        print "Got objects:", json.dumps(input_objs)
+        # print "Got objects:", json.dumps(input_objs)
 
         last_path_elem = input_path_arr[len(input_path_arr)-1]
         for input_obj in input_objs:
@@ -27,12 +28,17 @@ class EntityDeduplicator:
                 last_input_obj = input_obj[last_path_elem]
                 if isinstance(last_input_obj, list):
                     seen_objs = set()
+                    rest = list()
                     for part in last_input_obj:
                         part_str = json.dumps(part)
                         if part_str in seen_objs:
-                            last_input_obj.remove(part)
+                            # last_input_obj.remove(part)
+                            continue
                         else:
                             seen_objs.add(json.dumps(part))
+                            rest.append(part)
+                    #print rest
+                    input_obj[last_path_elem] = rest
 
         return input_json
 
@@ -59,6 +65,6 @@ if __name__ == "__main__":
     print "Write output to:", outputFilename
     fileUtil = FileUtil(sc)
     input_rdd = fileUtil.load_json_file(inputFilename, inputFileFormat, c_options)
-    result_rdd = input_rdd.mapValues(lambda x: EntityDeduplicator().deduplicate(x, inputPath))
+    result_rdd = input_rdd.mapValues(lambda x: EntityDeduplicator.deduplicate(x, inputPath))
 
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)

@@ -84,6 +84,68 @@ class JSONUtil:
             splitJsonPath = splitJsonPath[1:]
         return JSONUtil.replace_values_at_path_list(jsonInput, splitJsonPath, findUri, replaceJson, removeElements)
 
+    @staticmethod
+    def replace_values_at_path_batch(jsonInput, jsonPath, findAndReplaceMap, removeElements):
+        splitJsonPath = re.split(r'(?<!\\)\.', jsonPath)
+        splitJsonPath = map(lambda elem: re.sub('\\\\', '', elem), splitJsonPath)
+        if(splitJsonPath[0]== "$"):
+            splitJsonPath = splitJsonPath[1:]
+        return JSONUtil.replace_values_at_path_batch_list(jsonInput, splitJsonPath, findAndReplaceMap, removeElements)
+
+
+    @staticmethod
+    def replace_values_at_path_batch_list(jsonInput, jsonPathList, findAndReplaceMap, removeElements):
+        if(len(jsonPathList) == 0):
+            return
+        elif(len(jsonPathList) == 1):
+            if jsonPathList[0] in jsonInput:
+                strDictOrListValue = jsonInput[jsonPathList[0]]
+
+                if isinstance(strDictOrListValue, list):
+                    newList = list()
+                    listValue = strDictOrListValue
+
+                    for strDictOrListElement in listValue :
+                        matchFound = False
+                        for findUri in findAndReplaceMap:
+                            replaceJson = findAndReplaceMap[findUri]
+                            if JSONUtil.test_is_basestring_uri_match(strDictOrListElement, findUri):
+                                newList.append(replaceJson)
+                                matchFound = True
+                                break
+                            elif JSONUtil.test_is_dict_uri_match(strDictOrListElement, findUri):
+                                newList.append(JSONUtil.replace_values(strDictOrListElement, replaceJson, removeElements))
+                                matchFound = True
+                                break
+                        if not matchFound:
+                            newList.append(strDictOrListElement)
+                    jsonInput[jsonPathList[0]] = newList
+                else:
+                    for findUri in findAndReplaceMap:
+                        replaceJson = findAndReplaceMap[findUri]
+
+                        if JSONUtil.test_is_basestring_uri_match(strDictOrListValue, findUri) :
+                            jsonInput[jsonPathList[0]] = replaceJson
+                        elif JSONUtil.test_is_dict_uri_match(strDictOrListValue, findUri):
+                            jsonInput[jsonPathList[0]] = JSONUtil.replace_values(strDictOrListValue, replaceJson, removeElements)
+
+        elif jsonPathList[0] in jsonInput:
+            strDictOrListValue = jsonInput[jsonPathList[0]]
+            if isinstance(strDictOrListValue, list):
+                listValue = strDictOrListValue
+                for strDictOrListElement in listValue :
+                    if(isinstance(strDictOrListElement, basestring)):
+                        continue
+                    elif(isinstance(strDictOrListElement, dict)):
+                        dictElement = strDictOrListElement
+                        JSONUtil.replace_values_at_path_batch(dictElement, jsonPathList[1:], findAndReplaceMap, removeElements)
+                    else:
+                        continue
+            elif isinstance(strDictOrListValue, dict):
+                dictValue = strDictOrListValue
+                JSONUtil.replace_values_at_path_batch(dictValue, jsonPathList[1:], findAndReplaceMap, removeElements)
+
+        return jsonInput
   #  @staticmethod
   #  def replace_values_at_path(jsonInput, jsonPath, findUri, replaceJson, removeElements):
   #      findObjs = JSONUtil.extract_objects_from_path(jsonInput, jsonPath)

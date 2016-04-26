@@ -15,23 +15,20 @@ def merge_json(input_jsons, merge_uri_and_jsons, input_path):
             input_json = x
             break
 
-        # B/cluster	[
-        #               [
-        #                   ["C", {"image": {"isSimilarTo": [{"isSimilarTo": {"uri": "I5"}}, {"isSimilarTo": {"uri": "I6"}}]}, "uri": "C"}],
-        #                   ["B", {"image": {"isSimilarTo": [{"isSimilarTo": {"uri": "I1"}}, {"isSimilarTo": {"uri": "I3"}}, {"isSimilarTo": {"uri": "I5"}}]}, "uri": "B"}]
-        #               ]
-        #          ]
 
+        findReplaceMap = dict()
         for merge_uri_and_json in merge_uri_and_jsons:
+            # print merge_uri_and_json
+            # print "=========="
+            uri = merge_uri_and_json[0]
+            json_obj = merge_uri_and_json[1]
+            findReplaceMap[uri] = json_obj
 
-            uri_and_jsons = []
-            for x in merge_uri_and_json:
-                uri_and_jsons.append(x)
 
+        # print "INPUT JSON:", input_json
+        JSONUtil.replace_values_at_path_batch(input_json, input_path, findReplaceMap, [])
+        # print "OUTPUT JSON:", input_json
 
-            for uri_and_json in merge_uri_and_json:
-                input_json = JSONUtil.replace_values_at_path(input_json, input_path, uri_and_json[0],
-                                                         uri_and_json[1], [])
         return input_json
 
 
@@ -79,7 +76,7 @@ class EntityMerger:
 
         #4. Make input_uri as the key
         #output: input_uri, (merge_uri, base_json)
-        merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], [(source_uri, join_res[1])])).partitionBy(numPartitions)
+        merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], (source_uri, join_res[1]))).partitionBy(numPartitions)
 
         #5. Group results by input_uri
         #output: input_uri, list(merge_uri, base_json))
@@ -133,4 +130,7 @@ if __name__ == "__main__":
     result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)
 
     print "Write output to:", outputFilename
+    for x in result_rdd.collect():
+        print "---------------------"
+        print x
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)
