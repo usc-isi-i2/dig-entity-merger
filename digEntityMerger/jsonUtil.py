@@ -14,6 +14,17 @@ class JSONUtil:
         return isinstance(strDictOrListValue, dict) and (("uri" in strDictOrListValue and strDictOrListValue["uri"] == findUri )or ("@id" in strDictOrListValue and strDictOrListValue["@id"] == findUri))        
 
     @staticmethod
+    def extract_uri(strDictOrListValue):
+        if isinstance(strDictOrListValue, basestring):
+            return strDictOrListValue
+        elif isinstance(strDictOrListValue, dict):
+            if "uri" in strDictOrListValue:
+                return strDictOrListValue["uri"]
+            if "@id" in strDictOrListValue:
+                return strDictOrListValue["@id"]
+        return None
+
+    @staticmethod
     def is_reserved_json_ld_property(prop):
         return (prop[0] == "@"  or prop == "a" or prop == "uri")
         
@@ -106,18 +117,14 @@ class JSONUtil:
                     listValue = strDictOrListValue
 
                     for strDictOrListElement in listValue :
-                        matchFound = False
-                        for findUri in findAndReplaceMap:
-                            replaceJson = findAndReplaceMap[findUri]
-                            if JSONUtil.test_is_basestring_uri_match(strDictOrListElement, findUri):
+                        match_uri = JSONUtil.extract_uri(strDictOrListElement)
+                        if match_uri and match_uri in findAndReplaceMap:
+                            replaceJson = findAndReplaceMap[match_uri]
+                            if isinstance(strDictOrListElement, basestring):
                                 newList.append(replaceJson)
-                                matchFound = True
-                                break
-                            elif JSONUtil.test_is_dict_uri_match(strDictOrListElement, findUri):
+                            else:
                                 newList.append(JSONUtil.replace_values(strDictOrListElement, replaceJson, removeElements))
-                                matchFound = True
-                                break
-                        if not matchFound:
+                        else:
                             newList.append(strDictOrListElement)
                     jsonInput[jsonPathList[0]] = newList
                 else:
