@@ -97,10 +97,18 @@ class JSONUtil:
 
     @staticmethod
     def replace_values_at_path_batch(jsonInput, jsonPath, findAndReplaceMap, removeElements):
-        splitJsonPath = re.split(r'(?<!\\)\.', jsonPath)
-        splitJsonPath = map(lambda elem: re.sub('\\\\', '', elem), splitJsonPath)
-        if(splitJsonPath[0]== "$"):
-            splitJsonPath = splitJsonPath[1:]
+        # print "JSON Pathx:", jsonPath
+        # print "JSON Input:", jsonInput
+
+        if isinstance(jsonPath, list):
+            splitJsonPath = jsonPath
+        else:
+            splitJsonPath = re.split(r'(?<!\\)\.', jsonPath)
+            splitJsonPath = map(lambda elem: re.sub('\\\\', '', elem), splitJsonPath)
+            if(splitJsonPath[0]== "$"):
+                splitJsonPath = splitJsonPath[1:]
+        # print "JSON Splt Path:", splitJsonPath
+
         return JSONUtil.replace_values_at_path_batch_list(jsonInput, splitJsonPath, findAndReplaceMap, removeElements)
 
 
