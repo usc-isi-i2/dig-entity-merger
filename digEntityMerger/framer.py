@@ -25,15 +25,20 @@ def expand_list_values(rdd):
 def partition_rdd_on_types(rdd, types):
     type_to_rdd_json = {}
     for rdd_type in types:
-        def filter_on_type(tuple, class_name):
+        def filter_on_type(tuple, class_short_name, class_long_name):
             #print "FIlter on:", class_name
             # key = tuple[0]
             value = tuple[1]
             # print "GOt value", value
             if type(value) is dict:
                 if "a" in value:
-                    if value["a"] == class_name:
-                        return True
+                    a_value = value["a"]
+                    if type(a_value) is tuple or type(a_value) is list:
+                        if class_short_name in a_value or class_long_name in a_value:
+                            return True
+                    else:
+                        if a_value == class_short_name or a_value == class_long_name:
+                            return True
             return False
 
         def create_rdd_on_type(rdd, rdd_type):
@@ -41,7 +46,7 @@ def partition_rdd_on_types(rdd, types):
             type_full = rdd_type["uri"]
 
             type_to_rdd_json[type_name] = {}
-            type_to_rdd_json[type_name]["rdd"] = rdd.filter(lambda x: filter_on_type(x, type_full))
+            type_to_rdd_json[type_name]["rdd"] = rdd.filter(lambda x: filter_on_type(x, type_name, type_full))
 
         create_rdd_on_type(rdd, rdd_type)
     return type_to_rdd_json
