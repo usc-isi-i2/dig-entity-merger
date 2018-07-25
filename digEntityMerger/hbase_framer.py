@@ -62,24 +62,24 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
             return hashlib.sha1(text.encode('utf-8')).hexdigest().upper()
         return ''
 
-    frames_hashes_rdd = frames_rdd2.mapValues(lambda x: sha1_hash(json.dumps(x)))
-    for x in frames_hashes_rdd.take(1):
-        print "frames RDD hashes"
-        print(x[0], x[1])
+    frames_hashes_rdd = frames_rdd2.mapValues(lambda x: sha1_hash(json.dumps(x, sort_keys=True)))
+    # for x in frames_hashes_rdd.take(1):
+    #     print "frames RDD hashes"
+    #     print(x[0], x[1])
 
     if has_existing_rdd is True:
 
         #Step3: Get the frame:hashes that are completely new
         frames_hashes_new_rdd = frames_hashes_rdd.subtractByKey(existing_frames_rdd)
-        for x in frames_hashes_new_rdd.take(1):
-            print "frames_hashes_new_rdd hashes"
-            print(x[0], x[1],type(x[1]))
+        # for x in frames_hashes_new_rdd.take(1):
+        #     print "frames_hashes_new_rdd hashes"
+        #     print(x[0], x[1],type(x[1]))
 
         #Step4: Get the frame:hashes that also existed before
         frames_hashes_matching_exiting_rdd = frames_hashes_rdd.join(existing_frames_rdd)
-        for x in frames_hashes_matching_exiting_rdd.take(1):
-            print "frames_hashes_matching_exiting_rdd hashes"
-            print(x[0], x[1])
+        # for x in frames_hashes_matching_exiting_rdd.take(1):
+        #     print "frames_hashes_matching_exiting_rdd hashes"
+        #     print(x[0], x[1])
 
 
         def is_frame_updated(hashes):
@@ -92,16 +92,16 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         frames_hashes_to_add = frames_hashes_matching_exiting_rdd.filter(lambda x: is_frame_updated(x[1]))\
                                     .map(lambda x: (x[0], x[1][0]))\
                                     .union(frames_hashes_new_rdd)
-        for x in frames_hashes_to_add.take(1):
-            print "frames_hashes_to_add hashes"
-            print(x[0], x[1])
+        # for x in frames_hashes_to_add.take(1):
+        #     print "frames_hashes_to_add hashes"
+        #     print(x[0], x[1])
 
         #Step6: Get back the frames for the new/changed frame:hashes
         frames_and_hashes_to_add = frames_hashes_to_add.join(frames_rdd2)\
                                                         .persist(StorageLevel.MEMORY_AND_DISK)
-        for x in frames_and_hashes_to_add.take(1):
-            print "frames_and_hashes_to_add hashes"
-            print(x[0], x[1])
+        # for x in frames_and_hashes_to_add.take(1):
+        #     print "frames_and_hashes_to_add hashes"
+        #     print(x[0], x[1])
 
         hashes_to_add = frames_and_hashes_to_add.mapValues(lambda x: x[0])
 
@@ -124,9 +124,9 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         result.append(value)
         return result
     hashes_to_add_hbase = hashes_to_add.map(lambda x: (x[0], generate_hbase_row(x[0], x[1])))
-    for x in hashes_to_add_hbase.take(1):
-        print "hashes_to_add to HBASE"
-        print(x)
+    # for x in hashes_to_add_hbase.take(1):
+    #     print "hashes_to_add to HBASE"
+    #     print(x)
 
     write_conf = {
         "hbase.zookeeper.qourum": zookeeper,
@@ -139,8 +139,8 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
                 keyConverter="org.apache.spark.examples.pythonconverters.StringToImmutableBytesWritableConverter",
                 valueConverter="org.apache.spark.examples.pythonconverters.StringListToPutConverter")
 
-    for x in frames_to_add.take(1):
-        print "frames_to_add hashes"
-        print(x[0], x[1])
+    # for x in frames_to_add.take(1):
+    #     print "frames_to_add hashes"
+    #     print(x[0], x[1])
     return frames_to_add
 
