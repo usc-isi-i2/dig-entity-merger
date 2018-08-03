@@ -11,7 +11,7 @@ config = {
     'download_url': 'https://github.com/usc-isi-i2/dig-entity-merger',
     'author_email': 'dipsykapoor@gmail.com',
     'version': '0.4',
-    'install_requires': ['nose2'],
+    'install_requires': ['nose2', 'happybase'],
     # these are the subdirs of the current directory that we care about
     'packages': ['digEntityMerger'],
     'scripts': [],
