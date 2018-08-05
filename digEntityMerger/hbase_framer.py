@@ -110,9 +110,12 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
             return binascii.unhexlify(x).decode('utf-8')
 
         frames_to_add = frames_hashes_to_add.mapValues(lambda x: x[1]).map(lambda x: (convert_to_utf(x[0]), x[1]))
+        # for x in frames_to_add.take(1):
+        #     print "frames_to_add"
+        #     print(x[0], x[1])
 
     else:
-        hashes_to_add = frames_hashes_rdd
+        hashes_to_add = frames_hashes_rdd.mapValues(lambda x: x[0])
         frames_to_add = frames_rdd
 
     #Step8: Save back the new/changes hashes in HBase
@@ -143,8 +146,6 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         print "ERROR: Could not save the hashes to HBASE, continuing..."
         print sys.exc_info()[0]
 
-    # for x in frames_to_add.take(1):
-    #     print "frames_to_add hashes"
-    #     print(x[0], x[1])
+
     return frames_to_add
 
