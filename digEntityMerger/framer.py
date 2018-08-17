@@ -31,8 +31,11 @@ def partition_rdd_on_types(rdd, types):
             value = tuple[1]
             # print "GOt value", value
             if type(value) is dict:
-                if "a" in value:
-                    a_value = value["a"]
+                if "a" in value or "@type" in value:
+                    if "a" in value:
+                        a_value = value["a"]
+                    else:
+                        a_value = value["@type"]
                     if type(a_value) is tuple or type(a_value) is list:
                         if class_short_name in a_value or class_long_name in a_value:
                             return True

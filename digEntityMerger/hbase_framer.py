@@ -16,7 +16,7 @@ def load_rdd_from_hbase(sc, input_tablename, input_column, zookeeper, is_json=Tr
                    keyConverter="org.apache.spark.examples.pythonconverters.ImmutableBytesWritableToStringConverter",
                    valueConverter="org.apache.spark.examples.pythonconverters.HBaseResultToStringConverter")
     def convertToPair(x):
-        key = x[0]
+        key = str(x[0])
         value = json.loads(x[1])["value"]
         if is_json is True:
             value_final = json.loads(value.decode('unicode-escape'))
