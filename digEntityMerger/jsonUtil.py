@@ -237,9 +237,6 @@ class JSONUtil:
             return arr
         return some_object
 
-    @staticmethod
-    def __is_string(object):
-
 # if __name__ == "__main__":
     # import json
     # jsonStr1 = '{"@context":"https://raw.githubusercontent.com/usc-isi-i2/dig-alignment/development/versions/2.0/karma/context.json","a":"Patent","assignee":{"startDate":"1995-03-17","a":"schema:Role","assignee":{"address":{"schema:postalCode":"43041","addressLocality":"MARYSVILLE","addressRegion":"OHIO","a":"PostalAddress","schema:streetAddress":"14111 SCOTTSLAWN ROAD","uri":"http://dig.isi.edu/patents/data/address/_14111scottslawnroad_marysville_ohio_43041_"},"a":"PersonOrOrganization","name":"SCOTTS COMPANY, THE","uri":"http://dig.isi.edu/patents/data/organization/scottscompanythe"}},"uri":"http://dig.isi.edu/patents/data/patent/0006279","identifier":{"a":"Identifier","name":"0006279","hasType":"http://dig.isi.edu/patents/data/thesaurus/identifier/patentid"}}'
