@@ -3,9 +3,9 @@
 from pyspark import SparkContext
 from optparse import OptionParser
 import json
-from jsonUtil import JSONUtil
-from fileUtil import FileUtil
-from basicMerger import EntityMerger
+from digEntityMerger.jsonUtil import JSONUtil
+from digEntityMerger.fileUtil import FileUtil
+from digEntityMerger.basicMerger import EntityMerger
 
 # TODO This needs to be handled before the framer is ever invoked.  
 # The input to the framer should be key + dictionary value only
@@ -109,5 +109,5 @@ if __name__ == "__main__":
     for key, val in type_to_rdd_json.items():
         val["rdd"] = fileUtil.load_json_file(val["path"], val["format"], c_options)
     output_rdd = frame_json(frame, type_to_rdd_json)
-    print "Write output to:", outputFilename
+    print("Write output to:", outputFilename)
     fileUtil.save_json_file(output_rdd, outputFilename, outputFileFormat, c_options)

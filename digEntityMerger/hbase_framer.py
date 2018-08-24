@@ -1,7 +1,8 @@
-from framer import *
+from digEntityMerger.framer import *
 import hashlib
 from pyspark import StorageLevel
 import binascii
+import traceback
 import sys
 
 def load_rdd_from_hbase(sc, input_tablename, input_column, zookeeper, is_json=True):
@@ -15,14 +16,18 @@ def load_rdd_from_hbase(sc, input_tablename, input_column, zookeeper, is_json=Tr
                    conf=hbase_conf,
                    keyConverter="org.apache.spark.examples.pythonconverters.ImmutableBytesWritableToStringConverter",
                    valueConverter="org.apache.spark.examples.pythonconverters.HBaseResultToStringConverter")
+
     def convertToPair(x):
         key = str(x[0])
         value = json.loads(x[1])["value"]
         if is_json is True:
+            if hasattr(value, "encode"):
+                value = value.encode('utf-8')
             value_final = json.loads(value.decode('unicode-escape'))
         else:
             value_final = value
         return (key, value_final)
+
     return input_rdd.map(convertToPair)
 
 
@@ -52,13 +57,13 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
 
     has_existing_rdd = False
     for x in existing_frames_rdd.take(1):
-        print "Existing frames RDD"
+        print("Existing frames RDD")
         has_existing_rdd = True
         print(x[0], x[1])
 
     #Step2: Generate the hashes of all frames that were generated
     #First generate clean hex uri keys
-    frames_rdd2 = frames_rdd.map(lambda x: (x[0].encode('utf-8').encode('hex'), x[1]))\
+    frames_rdd2 = frames_rdd.map(lambda x: (binascii.hexlify(x[0].encode('utf-8')).decode('utf-8'), x[1]))\
                     .persist(StorageLevel.MEMORY_AND_DISK)
     frames_rdd2.setName("frames_rdd_keyhex")
 
@@ -73,7 +78,7 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
     frames_hashes_rdd.setName("frames_hashes_rdd")
 
     # for x in frames_hashes_rdd.take(1):
-    #     print "frames RDD hashes"
+    #     print("frames RDD hashes")
     #     print(x[0], x[1])
 
     if has_existing_rdd is True:
@@ -81,13 +86,13 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         #Step3: Get the frame:hashes that are completely new
         frames_hashes_new_rdd = frames_hashes_rdd.subtractByKey(existing_frames_rdd, numPartitions)
         # for x in frames_hashes_new_rdd.take(1):
-        #     print "frames_hashes_new_rdd hashes"
+        #     print("frames_hashes_new_rdd hashes")
         #     print(x[0], x[1],type(x[1]))
 
         #Step4: Get the frame:hashes that also existed before
         frames_hashes_matching_exiting_rdd = frames_hashes_rdd.join(existing_frames_rdd, numPartitions)
         # for x in frames_hashes_matching_exiting_rdd.take(1):
-        #     print "frames_hashes_matching_exiting_rdd hashes"
+        #     print("frames_hashes_matching_exiting_rdd hashes")
         #     print(x[0], x[1])
 
 
@@ -111,7 +116,7 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
 
         frames_to_add = frames_hashes_to_add.mapValues(lambda x: x[1]).map(lambda x: (convert_to_utf(x[0]), x[1]))
         # for x in frames_to_add.take(1):
-        #     print "frames_to_add"
+        #     print("frames_to_add")
         #     print(x[0], x[1])
 
     else:
@@ -128,7 +133,7 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         return result
     hashes_to_add_hbase = hashes_to_add.map(lambda x: (x[0], generate_hbase_row(x[0], x[1])))
     # for x in hashes_to_add_hbase.take(1):
-    #     print "hashes_to_add to HBASE"
+    #     print("hashes_to_add to HBASE")
     #     print(x)
 
     write_conf = {
@@ -142,9 +147,10 @@ def compute_frames_increment_from_hbase(sc, frames_rdd, frames_tablename, frames
         hashes_to_add_hbase.saveAsNewAPIHadoopDataset(conf=write_conf,
                     keyConverter="org.apache.spark.examples.pythonconverters.StringToImmutableBytesWritableConverter",
                     valueConverter="org.apache.spark.examples.pythonconverters.StringListToPutConverter")
-    except:
-        print "ERROR: Could not save the hashes to HBASE, continuing..."
-        print sys.exc_info()[0]
+    except Exception as err:
+        print("ERROR: Could not save the hashes to HBASE, continuing...")
+        traceback.print_exception(type(err), err, sys.exc_info()[2])
+        traceback.print_tb(err.__traceback__)
 
 
     return frames_to_add

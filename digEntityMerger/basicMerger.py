@@ -4,32 +4,34 @@ from pyspark import SparkContext
 
 from optparse import OptionParser
 import json
-from jsonUtil import JSONUtil
-from fileUtil import FileUtil
+from digEntityMerger.jsonUtil import JSONUtil
+from digEntityMerger.fileUtil import FileUtil
 
 
 #https://issues.apache.org/jira/browse/SPARK-4851
 #Am not able to make it a static method inside EntityMerger
 def merge_json(input_jsons, merge_uri_and_jsons, input_path):
-        for x in input_jsons:
-            input_json = x
-            break
+    # print ("INPUT JSONS:", input_jsons)
+    for x in input_jsons:
+        input_json = x
+        break
 
 
-        findReplaceMap = dict()
-        for merge_uri_and_json in merge_uri_and_jsons:
-            # print merge_uri_and_json
-            # print "=========="
-            uri = merge_uri_and_json[0]
-            json_obj = merge_uri_and_json[1]
-            findReplaceMap[uri] = json_obj
+    findReplaceMap = dict()
+    for merge_uri_and_json in merge_uri_and_jsons:
+        # print ("merge_uri_and_json:", merge_uri_and_json)
+        # print ("==========")
+        uri = merge_uri_and_json[0]
+        # print("uri:", uri)
+        json_obj = merge_uri_and_json[1]
+        findReplaceMap[uri] = json_obj
 
 
-        # print "INPUT JSON:", input_json
-        JSONUtil.replace_values_at_path_batch(input_json, input_path, findReplaceMap, [])
-        # print "OUTPUT JSON:", input_json
+    # print ("INPUT JSON:", input_json)
+    JSONUtil.replace_values_at_path_batch(input_json, input_path, findReplaceMap, [])
+    # print ("OUTPUT JSON:", input_json)
 
-        return input_json
+    return input_json
 
 
 def load_linking_row(json_str, uri_as_key):
@@ -60,10 +62,17 @@ class EntityMerger:
         #output: merge_uri, input_uri
         if maxNumMerge is not None:
             input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)[0:maxNumMerge]) \
-                .map(lambda (x, y): (y, x))
+                .map(lambda x: (x[1], x[0]))
         else:
             input_source_rdd = inputRDD.flatMapValues(lambda x: JSONUtil.extract_values_from_path(x, inputPath)) \
-                .map(lambda (x, y): (y, x))
+                .map(lambda x: (x[1], x[0]))
+
+        # print("merge_rdds at path", inputPath)
+        # for x in input_source_rdd.take(1):
+        #     print("input_source_rdd:", x)
+        #
+        # for x in baseRDD.take(1):
+        #     print("baseRDD:", x)
 
         if numPartitions > 0:
             input_source_rdd = input_source_rdd.partitionBy(numPartitions)
@@ -74,9 +83,15 @@ class EntityMerger:
         else:
             merge3 = input_source_rdd.join(baseRDD)
 
+        # for x in merge3.take(1):
+        #     print("merge3:", x)
+
         #4. Make input_uri as the key
         #output: input_uri, (merge_uri, base_json)
-        merge4 = merge3.map(lambda (source_uri, join_res): (join_res[0], (source_uri, join_res[1]))).partitionBy(numPartitions)
+        merge4 = merge3.map(lambda x: (x[1][0], (x[0], x[1][1]))).partitionBy(numPartitions)
+
+        # for x in merge4.take(1):
+        #     print("merge4:", x)
 
         #5. Group results by input_uri
         #output: input_uri, list(merge_uri, base_json))
@@ -92,7 +107,13 @@ class EntityMerger:
             merge6 = inputRDD.cogroup(merge4)
 
         #7 Replace JSON as necessary
+        # for x in merge6.take(1):
+        #     print("merge6:", x[0], list(x[1][0]), list(x[1][1]))
+
         result = merge6.mapValues(lambda x: merge_json(x[0], x[1], inputPath))
+
+        # for x in result.take(1):
+        #     print("result:", x)
         return result
 
 
@@ -119,9 +140,9 @@ if __name__ == "__main__":
     outputFilename = args[5]
     outputFileFormat = args[6]
 
-    print "Got options:", c_options, ", " \
+    print("Got options:", c_options, ", " \
                          "input:", inputFilename1, ",", inputFileFormat1, ",", inputPath, \
-                         ", base:", baseFilename, ",", baseFormat
+                         ", base:", baseFilename, ",", baseFormat)
 
     fileUtil = FileUtil(sc)
     input_rdd1 = fileUtil.load_json_file(inputFilename1, inputFileFormat1, c_options)
@@ -129,8 +150,8 @@ if __name__ == "__main__":
 
     result_rdd = EntityMerger.merge_rdds(input_rdd1, inputPath, base_rdd, c_options.numPartitions)
 
-    print "Write output to:", outputFilename
+    print("Write output to:", outputFilename)
     for x in result_rdd.collect():
-        print "---------------------"
-        print x
+        print("---------------------")
+        print(x)
     fileUtil.save_json_file(result_rdd, outputFilename, outputFileFormat, c_options)

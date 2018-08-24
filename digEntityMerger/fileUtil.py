@@ -16,7 +16,7 @@ class FileUtil:
 
     def save_json_file(self, rdd, filename, fileformat, options):
         if fileformat == "text":
-            rdd.map(lambda (k, v): FileUtil.__dump_as_json(k, v, options.separator)).saveAsTextFile(filename)
+            rdd.map(lambda x: FileUtil.__dump_as_json(x[0], x[1], options.separator)).saveAsTextFile(filename)
         else:
             rdd.mapValues(lambda x: json.dumps(x)).saveAsSequenceFile(filename)
 
